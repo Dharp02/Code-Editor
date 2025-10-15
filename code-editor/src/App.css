@@ -286,3 +286,78 @@
   overflow: hidden;
   min-height: 0;
 }
+
+/* Diff Modal - Full Screen */
+.diff-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 20px;
+}
+
+.diff-modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 95%;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Diff Header */
+.diff-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-bottom: 2px solid #ddd;
+  background-color: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.diff-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+/* Labels for Original vs Modified */
+.diff-labels {
+  display: flex;
+  background-color: #e9ecef;
+  border-bottom: 1px solid #ddd;
+}
+
+.diff-label-left,
+.diff-label-right {
+  flex: 1;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #555;
+  text-align: center;
+}
+
+.diff-label-left {
+  border-right: 1px solid #ddd;
+  background-color: #fff3cd;
+}
+
+.diff-label-right {
+  background-color: #d1ecf1;
+}
+
+/* Diff Editor Container */
+.diff-editor-container {
+  flex: 1;
+  overflow: hidden;
+  border-radius: 0 0 8px 8px;
+}

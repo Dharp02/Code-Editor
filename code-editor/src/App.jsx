@@ -1,14 +1,19 @@
 import { useState, useRef } from 'react'
 import Editor from '@monaco-editor/react'
+import { DiffEditor } from '@monaco-editor/react'  // Move import to top
 import './App.css'
 import yaml from 'js-yaml'
 
 function App() {
+  // ALL HOOKS MUST BE INSIDE THE COMPONENT - MOVED THESE HERE
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDarkTheme, setIsDarkTheme] = useState(true)
-  const editorRef = useRef(null)
   const [showLogsPanel, setShowLogsPanel] = useState(false)  
-  const [logs, setLogs] = useState([])  
+  const [logs, setLogs] = useState([])
+  const [originalContent, setOriginalContent] = useState('')  // MOVED HERE
+  const [showDiffModal, setShowDiffModal] = useState(false)   // MOVED HERE
+  
+  const editorRef = useRef(null)  // MOVED HERE
 
   const exampleYCard = `# Example yCard
 people:
@@ -48,16 +53,15 @@ people:
   const addLog = (type, message) => {
     const timestamp = new Date().toLocaleTimeString()
     const newLog = {
-      type: type,        // 'success', 'error', 'warning', 'info'
+      type: type,
       message: message,
       timestamp: timestamp
     }
     
     setLogs(prevLogs => {
       const updated = [...prevLogs, newLog]
-      // Keep only last 50 logs
       if (updated.length > 50) {
-        updated.shift()  // Remove oldest
+        updated.shift()
       }
       return updated
     })
@@ -75,6 +79,24 @@ people:
       editorRef.current.trigger('keyboard', 'redo', null)
       addLog('info', 'Redo performed')
     }
+  }
+
+  const handleDiff = () => {
+    if (!editorRef.current) {
+      alert('Editor not ready')
+      return
+    }
+
+    const currentContent = editorRef.current.getValue()
+    
+    if (currentContent === originalContent) {
+      addLog('info', 'No changes detected')
+      alert(' No Changes\n\nThe document has not been modified')
+      return
+    }
+    
+    addLog('info', 'Opening diff view...')
+    setShowDiffModal(true)
   }
 
   const handleValidate = () => {
@@ -101,7 +123,6 @@ people:
         return
       }
 
-      // Validate each person
       for (let i = 0; i < parsed.people.length; i++) {
         const person = parsed.people[i]
         
@@ -129,14 +150,12 @@ people:
           return
         }
 
-        // Check phone structure
         if (person.phone && !Array.isArray(person.phone)) {
           addLog('error', `Validation failed: Person ${i + 1} "phone" must be an array`)
           alert(` Validation Failed\n\nPerson ${i + 1}: "phone" must be an array`)
           return
         }
 
-        // Check address structure (should be object, not array)
         if (person.address && Array.isArray(person.address)) {
           addLog('error', `Validation failed: Person ${i + 1} "address" should be an object`)
           alert(` Validation Failed\n\nPerson ${i + 1}: "address" should be an object, not an array`)
@@ -178,7 +197,6 @@ people:
         return
       }
       
-      // Validate mandatory fields before saving
       for (let i = 0; i < parsed.people.length; i++) {
         const person = parsed.people[i]
         
@@ -232,7 +250,6 @@ people:
       {isModalOpen && (
         <div className="modal-backdrop">
           <div className="modal-content">
-            {/* Modal Header */}
             <div className="modal-header">
               <h2>yCard YAML Editor</h2>
               <button 
@@ -243,7 +260,6 @@ people:
               </button>
             </div>
           
-            {/* Toolbar */}
             <div className="toolbar">
               <button 
                 className="toolbar-btn toolbar-btn-theme"
@@ -269,7 +285,7 @@ people:
               <button className="toolbar-btn toolbar-btn-save" onClick={handleSave}>
                  Save
               </button>
-              <button className="toolbar-btn toolbar-btn-diff">
+              <button className="toolbar-btn toolbar-btn-diff" onClick={handleDiff}>
                 ⇄ Diff
               </button>
               <button 
@@ -285,16 +301,14 @@ people:
               <div className="toolbar-divider"></div>
               
               <button className="toolbar-btn toolbar-btn-reset">
-                 Reset
+                ↻ Reset
               </button>
               <button className="toolbar-btn toolbar-btn-refresh">
                  Refresh
               </button>
             </div>
 
-            {/* Main Content Area with Editor and Logs */}
             <div className="modal-body">
-              {/* Monaco Editor Container */}              
               <div className="editor-container">
                 <Editor
                   height="500px"
@@ -303,12 +317,12 @@ people:
                   theme={isDarkTheme ? "vs-dark" : "light"}
                   onMount={(editor) => {
                     editorRef.current = editor
+                    setOriginalContent(exampleYCard)
                     addLog('success', 'Editor initialized successfully')
                   }}
                 />
               </div>
 
-              {/* Logs Panel */}
               {showLogsPanel && (
                 <div className="logs-panel">
                   <div className="logs-header">
@@ -345,8 +359,47 @@ people:
                 </div>
               )}
             </div>
-            {/* End modal-body */}
 
+          </div>
+        </div>
+      )}
+
+      {/* Diff Modal - OUTSIDE main modal */}
+      {showDiffModal && (
+        <div className="diff-modal-backdrop">
+          <div className="diff-modal-content">
+            <div className="diff-header">
+              <h2> Compare Changes</h2>
+              <button 
+                onClick={() => {
+                  setShowDiffModal(false)
+                  addLog('info', 'Diff view closed')
+                }}
+                className="close-button"
+              >
+                ✕ Close
+              </button>
+            </div>
+            
+            <div className="diff-labels">
+              <div className="diff-label-left">Original Content</div>
+              <div className="diff-label-right">Current Content (Modified)</div>
+            </div>
+            
+            <div className="diff-editor-container">
+              <DiffEditor
+                height="100%"
+                language="yaml"
+                original={originalContent}
+                modified={editorRef.current?.getValue() || ''}
+                theme={isDarkTheme ? "vs-dark" : "light"}
+                options={{
+                  readOnly: true,
+                  renderSideBySide: true,
+                  enableSplitViewResizing: true,
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
