@@ -1,19 +1,19 @@
 import { useState, useRef } from 'react'
 import Editor from '@monaco-editor/react'
-import { DiffEditor } from '@monaco-editor/react'  // Move import to top
+import { DiffEditor } from '@monaco-editor/react'  
 import './App.css'
 import yaml from 'js-yaml'
 
 function App() {
-  // ALL HOOKS MUST BE INSIDE THE COMPONENT - MOVED THESE HERE
+ 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDarkTheme, setIsDarkTheme] = useState(true)
   const [showLogsPanel, setShowLogsPanel] = useState(false)  
   const [logs, setLogs] = useState([])
-  const [originalContent, setOriginalContent] = useState('')  // MOVED HERE
-  const [showDiffModal, setShowDiffModal] = useState(false)   // MOVED HERE
-  
-  const editorRef = useRef(null)  // MOVED HERE
+  const [originalContent, setOriginalContent] = useState('')  
+  const [showDiffModal, setShowDiffModal] = useState(false)   
+  const [modifiedContent, setModifiedContent] = useState('')
+  const editorRef = useRef(null)  
 
   const exampleYCard = `# Example yCard
 people:
@@ -67,19 +67,8 @@ people:
     })
   }
 
-  const handleUndo = () => {
-    if (editorRef.current) {
-      editorRef.current.trigger('keyboard', 'undo', null)
-      addLog('info', 'Undo performed')
-    }
-  }
+  
 
-  const handleRedo = () => {
-    if (editorRef.current) {
-      editorRef.current.trigger('keyboard', 'redo', null)
-      addLog('info', 'Redo performed')
-    }
-  }
 
   const handleDiff = () => {
     if (!editorRef.current) {
@@ -94,7 +83,7 @@ people:
       alert(' No Changes\n\nThe document has not been modified')
       return
     }
-    
+    setModifiedContent(currentContent)
     addLog('info', 'Opening diff view...')
     setShowDiffModal(true)
   }
@@ -172,6 +161,35 @@ people:
       alert(` Invalid YAML\n\n${error.message}`)
     }
   }
+
+  const handleRefresh = () => {
+  const saved = localStorage.getItem('ycard-data')
+  
+  if (!saved) {
+    addLog('warning', 'No saved data found in localStorage')
+    alert(' No Saved Data\n\nNo data found in localStorage')
+    return
+  }
+  
+  try {
+    // Parse JSON back to object
+    const parsed = JSON.parse(saved)
+    
+    // Convert back to YAML
+    const yamlContent = yaml.dump(parsed)
+    
+    // Set in editor
+    if (editorRef.current) {
+      editorRef.current.setValue(yamlContent)
+      setOriginalContent(yamlContent)  // Update original too
+      addLog('success', 'Data loaded from localStorage')
+      alert(' Data Loaded\n\nData loaded from localStorage')
+    }
+  } catch (error) {
+    addLog('error', `Error loading data: ${error.message}`)
+    alert(` Error Loading Data\n\n${error.message}`)
+  }
+ }
 
   const handleSave = () => {
     if (!editorRef.current) {
@@ -270,12 +288,6 @@ people:
               
               <div className="toolbar-divider"></div>
               
-              <button className="toolbar-btn toolbar-btn-undo" onClick={handleUndo}>
-                ↶ Undo
-              </button>
-              <button className="toolbar-btn toolbar-btn-redo" onClick={handleRedo}>
-                ↷ Redo
-              </button>
               
               <div className="toolbar-divider"></div>
               
@@ -303,7 +315,7 @@ people:
               <button className="toolbar-btn toolbar-btn-reset">
                 ↻ Reset
               </button>
-              <button className="toolbar-btn toolbar-btn-refresh">
+              <button className="toolbar-btn toolbar-btn-refresh" onClick={handleRefresh}>
                  Refresh
               </button>
             </div>
@@ -316,10 +328,28 @@ people:
                   defaultValue={exampleYCard}
                   theme={isDarkTheme ? "vs-dark" : "light"}
                   onMount={(editor) => {
-                    editorRef.current = editor
+                  editorRef.current = editor
+                  
+                  // Check if there's saved data
+                  const saved = localStorage.getItem('ycard-data')
+                  
+                  if (saved) {
+                    try {
+                      const parsed = JSON.parse(saved)
+                      const yamlContent = yaml.dump(parsed)
+                      editor.setValue(yamlContent)
+                      setOriginalContent(yamlContent)
+                      addLog('success', 'Loaded saved data from localStorage')
+                    } catch (error) {
+                      // If error, use default
+                      setOriginalContent(exampleYCard)
+                      addLog('warning', 'Could not load saved data, using example')
+                    }
+                  } else {
                     setOriginalContent(exampleYCard)
-                    addLog('success', 'Editor initialized successfully')
-                  }}
+                    addLog('success', 'Editor initialized with example data')
+                  }
+                }}
                 />
               </div>
 
@@ -391,7 +421,7 @@ people:
                 height="100%"
                 language="yaml"
                 original={originalContent}
-                modified={editorRef.current?.getValue() || ''}
+                modified={modifiedContent}
                 theme={isDarkTheme ? "vs-dark" : "light"}
                 options={{
                   readOnly: true,
