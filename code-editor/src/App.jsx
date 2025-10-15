@@ -67,7 +67,14 @@ people:
     })
   }
 
-  
+  const resetEditor = () => {
+    if (editorRef.current) {
+      editorRef.current.setValue(exampleYCard)
+      setOriginalContent(exampleYCard)
+      addLog('info', 'Editor reset to example data')
+      alert(' Editor Reset\n\nEditor content has been reset to example data')
+    }
+  }
 
 
   const handleDiff = () => {
@@ -312,7 +319,7 @@ people:
               
               <div className="toolbar-divider"></div>
               
-              <button className="toolbar-btn toolbar-btn-reset">
+              <button className="toolbar-btn toolbar-btn-reset" onClick={resetEditor}>
                 ↻ Reset
               </button>
               <button className="toolbar-btn toolbar-btn-refresh" onClick={handleRefresh}>
