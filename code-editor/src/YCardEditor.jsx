@@ -438,7 +438,7 @@ people:
           {/* Editor Side */}
           <div className={`editor-container ${currentPersonData ? 'editor-container-flex with-card' : 'editor-container-flex'}`}>
             <Editor
-              height="500px"
+              height="100%"
               defaultLanguage="yaml"
               defaultValue={exampleYCard}
               theme={isDarkTheme ? "vs-dark" : "light"}
