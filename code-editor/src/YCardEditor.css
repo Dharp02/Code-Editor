@@ -566,11 +566,6 @@
   font-weight: normal;
 }
 
-.card-contact-item.filled {
-  color: white;
-}
-
-
 
 .card-contact-item.light.filled {
   color: #000;
@@ -587,7 +582,14 @@
 
 .card-contact-item.email {
   word-break: break-all;
+  color: white
 }
+
+.card-contact-item.email {
+  word-break: break-all;
+  color: black
+}
+
 
 /* Address Section */
 .card-address-section {

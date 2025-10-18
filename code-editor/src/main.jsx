@@ -5,6 +5,7 @@ import YCardEditor from './YCardEditor.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <YCardEditor />
+    <YCardEditor /> 
+    
   </StrictMode>,
 )
